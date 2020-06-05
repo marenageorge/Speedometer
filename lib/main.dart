@@ -33,13 +33,15 @@ class _MyHomePageState extends State<MyHomePage> {
   Position _position;
   String stringSpeed = "";
   final Distance distance = new Distance();
-  Position initPosition;
-  Position pf;
-  // int time10 = 0;
-  // int time30 = 0;
-  double speed1 = 0;
+  Stopwatch stopwatch10 = new Stopwatch();
+  Stopwatch stopwatch30 = new Stopwatch();
+  String time30 = "";
+  String time10 = "";
+  double newSpeed = 0.0;
   var boolenTime30 = 0;
   var boolenTime10 = 0;
+  double start =0.0;
+  double end=30.0;
 
   @override
   void initState() {
@@ -51,51 +53,53 @@ class _MyHomePageState extends State<MyHomePage> {
 
     _geolocator.getPositionStream(locationOptions).listen((Position position) {
       _position = position;
-      speed1 = (_position.speed * 3.6);
     });
   }
 
-  Stopwatch stopwatch10 = new Stopwatch();
-  Stopwatch stopwatch30 = new Stopwatch();
-  String time30 = "";
-  String time10 = "";
-  double newSpeed = 0.0;
   void updateLocation() async {
     try {
       Position newPosition = await Geolocator()
           .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      
+
       setState(() {
         _position = newPosition;
         newSpeed = (_position.speed * 3.6).floorToDouble();
-        print(_position.speed * 3.6);
-        print("yalhoy");
+
         stringSpeed = newSpeed.toString();
-       
-         if(newSpeed < 1.0 || newSpeed > 2.0 )
-        {
+
+        if (newSpeed < start || newSpeed > end) {
           stopwatch30.reset();
           stopwatch10.reset();
-          boolenTime30 =0;
-          boolenTime10=0;
+          if (newSpeed < start) {
+            boolenTime30 = 1;
+            boolenTime10 = 0;
+          } else if (newSpeed > end) {
+            boolenTime30 = 0;
+            boolenTime10 = 1;
+          }
+        } else if (newSpeed >= start && newSpeed <= end) {
+          if (newSpeed == end) {
+            boolenTime30 = 0;
+            boolenTime10 = 1;
+          }
+          if (newSpeed == start) {
+            boolenTime30 = 1;
+            boolenTime10 = 0;
+          }
+          if (boolenTime30 == 1 && stopwatch30.isRunning != true) {
+            boolenTime30 = 0;
+            boolenTime10 = 0;
+            stopwatch30.start();
+            stopwatch10.stop();
+            stopwatch10.reset();
+          } else if (boolenTime10 == 1 && stopwatch10.isRunning != true) {
+            boolenTime30 = 0;
+            boolenTime10 = 0;
+            stopwatch10.start();
+            stopwatch30.stop();
+            stopwatch30.reset();
+          }
         }
-      else if (newSpeed == 1.0  && boolenTime30 == 0) {
-          boolenTime30 = 1;
-          boolenTime10 = 0;
-          stopwatch30.start();
-          stopwatch10.reset();
-          print("daaaaaaaaaaaa5l 1");
-          print(newSpeed.toString());
-        }
-      else if (newSpeed == 2.0  && boolenTime10 == 0 ) {
-          boolenTime30 = 0;
-          boolenTime10 = 1;
-          stopwatch10.start();
-          stopwatch30.reset();
-          print("daaaaaaaaaaaaa5l 2");
-          print(newSpeed.toString());
-        }
-        speed1 = newSpeed;
       });
 
       setState(() {
@@ -123,9 +127,9 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                Expanded(    
+                Expanded(
                   child: ListView(
-                    children: <Widget>[ 
+                    children: <Widget>[
                       GridView.count(
                         crossAxisCount:
                             orientation == Orientation.portrait ? 1 : 1,
@@ -135,23 +139,20 @@ class _MyHomePageState extends State<MyHomePage> {
                         // physics: new NeverScrollableScrollPhysics()
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(
-                          top: 30,
-                          left: 0
-                        ),
+                        padding: const EdgeInsets.only(top: 30, left: 0),
                         child: Text(
                           'Current Speed',
                           style: TextStyle(fontSize: 30),
                           textAlign: TextAlign.center,
                         ),
                       ),
-                     Text(
+                      Text(
                         '${stringSpeed != null ? stringSpeed : '0'}', // hna el geolocation
                         style: TextStyle(
                             fontSize: 70,
                             color: Colors.green,
                             fontFamily: 'DSDigital'),
-                            textAlign: TextAlign.center,
+                        textAlign: TextAlign.center,
                       ),
                       Text(
                         "kmh", // hna el geolocation
@@ -159,45 +160,43 @@ class _MyHomePageState extends State<MyHomePage> {
                         textAlign: TextAlign.center,
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(
-                          top: 80,
-                          left: 0
-                        ),
+                        padding: const EdgeInsets.only(top: 80, left: 0),
                         child: Text(
                           "From 10 to 30",
                           style: TextStyle(fontSize: 30),
                           textAlign: TextAlign.center,
                         ),
-                      ), Text(
+                      ),
+                      Text(
                         '${time30 != null ? time30 : '0'}', // hna el geolocation
                         style: TextStyle(
                             fontSize: 50,
                             color: Colors.green,
                             fontFamily: 'DSDigital'),
-                            textAlign: TextAlign.center,
-                      ),Text(
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
                         "Seconds", // hna el geolocation
                         style: TextStyle(fontSize: 30),
                         textAlign: TextAlign.center,
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(
-                          top: 60,
-                          left: 0
-                        ),
+                        padding: const EdgeInsets.only(top: 60, left: 0),
                         child: Text(
                           "From 30 to 10",
-                          style: TextStyle(fontSize: 30 ),
+                          style: TextStyle(fontSize: 30),
                           textAlign: TextAlign.center,
                         ),
-                      ), Text(
+                      ),
+                      Text(
                         '${time10 != null ? time10 : '0'}', // hna el geolocation
                         style: TextStyle(
                             fontSize: 50,
                             color: Colors.green,
                             fontFamily: 'DSDigital'),
-                            textAlign: TextAlign.center,
-                      ), Text(
+                        textAlign: TextAlign.center,
+                      ),
+                      Text(
                         "Seconds", // hna el geolocation
                         style: TextStyle(fontSize: 30),
                         textAlign: TextAlign.center,
@@ -205,12 +204,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ],
                   ),
                 )
-                ]
-                )
-              
-              
-          );
-              
+              ]));
         }));
   }
 }
